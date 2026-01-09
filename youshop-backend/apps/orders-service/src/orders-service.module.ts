@@ -1,10 +1,21 @@
 import { Module } from '@nestjs/common';
-import { OrdersServiceController } from './orders-service.controller';
-import { OrdersServiceService } from './orders-service.service';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { getOrdersDatabaseConfig } from '@youshop/database';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
-  imports: [],
-  controllers: [OrdersServiceController],
-  providers: [OrdersServiceService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    TypeOrmModule.forRootAsync({
+      useFactory: getOrdersDatabaseConfig,
+    }),
+    OrdersModule,
+  ],
+  controllers: [],
+  providers: [],
 })
 export class OrdersServiceModule {}

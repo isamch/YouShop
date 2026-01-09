@@ -1,0 +1,66 @@
+import { Controller, All, Req, Res, Headers, Query } from '@nestjs/common';
+import type { Request, Response } from 'express';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { HttpClientService } from '../services/http-client.service';
+
+@ApiTags('inventory')
+@Controller('inventory')
+export class InventoryProxyController {
+  constructor(private readonly httpClient: HttpClientService) {}
+
+  @All('sku*')
+  @ApiOperation({ summary: 'Proxy requests to inventory service - SKU' })
+  async proxySkuRequests(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Headers() headers: Record<string, string>,
+    @Query() query: Record<string, any>
+  ) {
+    const path = `/api${req.url}`;
+    const method = req.method;
+    const data = req.body;
+
+    try {
+      const result = await this.httpClient.forwardRequest(
+        'inventory',
+        path,
+        method,
+        data,
+        headers,
+        query
+      );
+
+      return res.json(result);
+    } catch (error) {
+      return res.status(error.getStatus()).json(error.getResponse());
+    }
+  }
+
+  @All('stock*')
+  @ApiOperation({ summary: 'Proxy requests to inventory service - Stock' })
+  async proxyStockRequests(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Headers() headers: Record<string, string>,
+    @Query() query: Record<string, any>
+  ) {
+    const path = `/api${req.url}`;
+    const method = req.method;
+    const data = req.body;
+
+    try {
+      const result = await this.httpClient.forwardRequest(
+        'inventory',
+        path,
+        method,
+        data,
+        headers,
+        query
+      );
+
+      return res.json(result);
+    } catch (error) {
+      return res.status(error.getStatus()).json(error.getResponse());
+    }
+  }
+}

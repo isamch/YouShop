@@ -7,8 +7,13 @@ import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { Public } from '../../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+
+/**
+ * Public Decorator - inline definition
+ */
+import { SetMetadata } from '@nestjs/common';
+const Public = () => SetMetadata('isPublic', true);
 
 /**
  * Authentication Controller

@@ -1,8 +1,34 @@
 import { NestFactory } from '@nestjs/core';
 import { InventoryServiceModule } from './inventory-service.module';
+import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(InventoryServiceModule);
-  await app.listen(process.env.port ?? 3000);
+  
+  app.setGlobalPrefix('api');
+  
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  // Swagger setup
+  const config = new DocumentBuilder()
+    .setTitle('YouShop Inventory Service')
+    .setDescription('SKU and Stock Management API')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
+  const port = process.env.INVENTORY_SERVICE_PORT || 3003;
+  await app.listen(port);
+  
+  console.log(`Inventory Service is running on: http://localhost:${port}/api`);
+  console.log(`Swagger docs available at: http://localhost:${port}/api/docs`);
 }
 bootstrap();
