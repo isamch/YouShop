@@ -97,6 +97,10 @@ export class PaymentsService {
 
   async handleWebhook(signature: string, payload: any) {
     try {
+      if (!stripeConfig.webhookSecret) {
+        throw new BadRequestException('Stripe webhook secret is not configured');
+      }
+
       const event = stripe.webhooks.constructEvent(
         payload,
         signature,
