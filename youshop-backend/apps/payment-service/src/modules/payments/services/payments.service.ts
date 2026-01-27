@@ -1,10 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { stripe } from '../../config/stripe.config';
+import { stripe, stripeConfig } from '../../../config/stripe.config';
 import { CreatePaymentIntentDto, ConfirmPaymentDto, RefundPaymentDto } from '../dto/payment.dto';
 
 @Injectable()
 export class PaymentsService {
-  
+
   async createPaymentIntent(createPaymentDto: CreatePaymentIntentDto) {
     try {
       const paymentIntent = await stripe.paymentIntents.create({
@@ -53,7 +53,7 @@ export class PaymentsService {
   async getPaymentStatus(paymentIntentId: string) {
     try {
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      
+
       return {
         success: true,
         paymentIntentId: paymentIntent.id,
@@ -100,7 +100,7 @@ export class PaymentsService {
       const event = stripe.webhooks.constructEvent(
         payload,
         signature,
-        process.env.STRIPE_WEBHOOK_SECRET
+        stripeConfig.webhookSecret
       );
 
       console.log(`🔔 Webhook received: ${event.type}`);

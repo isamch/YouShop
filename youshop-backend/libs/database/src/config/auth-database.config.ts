@@ -8,7 +8,7 @@ export const getAuthDatabaseConfig = (): TypeOrmModuleOptions => ({
   password: process.env.AUTH_DB_PASSWORD || 'password',
   database: process.env.AUTH_DB_NAME || 'auth_db',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  synchronize: process.env.NODE_ENV === 'development',
+  synchronize: false,
   logging: process.env.NODE_ENV === 'development',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   autoLoadEntities: true,

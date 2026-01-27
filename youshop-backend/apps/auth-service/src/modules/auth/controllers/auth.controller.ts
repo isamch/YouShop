@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, HttpCode } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
@@ -43,6 +43,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Login user' })
   @Public()
   @Post('login')
+  @HttpCode(200)
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
@@ -99,6 +100,6 @@ export class AuthController {
   @ApiBearerAuth()
   @Get('profile')
   getProfile(@CurrentUser() user: any) {
-    return { user };
+    return user;
   }
 }

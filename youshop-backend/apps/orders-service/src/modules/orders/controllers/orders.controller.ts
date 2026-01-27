@@ -8,7 +8,7 @@ import { OrderStatus, PaymentStatus } from '../entities/order.entity';
 @ApiTags('orders')
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a new order' })
@@ -28,8 +28,8 @@ export class OrdersController {
   @ApiQuery({ name: 'dateFrom', required: false, type: Date })
   @ApiQuery({ name: 'dateTo', required: false, type: Date })
   findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
     @Query('userId') userId?: string,
     @Query('status') status?: OrderStatus,
     @Query('paymentStatus') paymentStatus?: PaymentStatus,
@@ -43,8 +43,11 @@ export class OrdersController {
       dateFrom,
       dateTo,
     };
-    const pagination: PaginationOptions = { page, limit };
-    
+    const pagination: PaginationOptions = {
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined
+    };
+
     return this.ordersService.findAll(filters, pagination);
   }
 

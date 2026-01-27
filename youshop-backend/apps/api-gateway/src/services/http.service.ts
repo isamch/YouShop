@@ -5,17 +5,18 @@ import { SERVICES_CONFIG } from '../config/services.config';
 
 @Injectable()
 export class SimpleHttpService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly httpService: HttpService) { }
 
   async post(serviceEndpoint: string, data: any, headers?: any) {
     try {
-      const [service, endpoint] = serviceEndpoint.split('/');
+      const [service, ...endpointParts] = serviceEndpoint.split('/');
+      const endpoint = endpointParts.join('/');
       const serviceUrl = this.getServiceUrl(service);
-      
+
       const response = await firstValueFrom(
         this.httpService.post(`${serviceUrl}/api/${endpoint}`, data, { headers })
       );
-      
+
       return response.data;
     } catch (error) {
       throw new HttpException(
@@ -27,13 +28,14 @@ export class SimpleHttpService {
 
   async get(serviceEndpoint: string, headers?: any) {
     try {
-      const [service, endpoint] = serviceEndpoint.split('/');
+      const [service, ...endpointParts] = serviceEndpoint.split('/');
+      const endpoint = endpointParts.join('/');
       const serviceUrl = this.getServiceUrl(service);
-      
+
       const response = await firstValueFrom(
         this.httpService.get(`${serviceUrl}/api/${endpoint}`, { headers })
       );
-      
+
       return response.data;
     } catch (error) {
       throw new HttpException(
@@ -45,13 +47,14 @@ export class SimpleHttpService {
 
   async patch(serviceEndpoint: string, data: any, headers?: any) {
     try {
-      const [service, endpoint] = serviceEndpoint.split('/');
+      const [service, ...endpointParts] = serviceEndpoint.split('/');
+      const endpoint = endpointParts.join('/');
       const serviceUrl = this.getServiceUrl(service);
-      
+
       const response = await firstValueFrom(
         this.httpService.patch(`${serviceUrl}/api/${endpoint}`, data, { headers })
       );
-      
+
       return response.data;
     } catch (error) {
       throw new HttpException(
@@ -63,13 +66,14 @@ export class SimpleHttpService {
 
   async delete(serviceEndpoint: string, headers?: any) {
     try {
-      const [service, endpoint] = serviceEndpoint.split('/');
+      const [service, ...endpointParts] = serviceEndpoint.split('/');
+      const endpoint = endpointParts.join('/');
       const serviceUrl = this.getServiceUrl(service);
-      
+
       const response = await firstValueFrom(
         this.httpService.delete(`${serviceUrl}/api/${endpoint}`, { headers })
       );
-      
+
       return response.data;
     } catch (error) {
       throw new HttpException(

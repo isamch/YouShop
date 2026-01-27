@@ -32,7 +32,7 @@ const products = [
   { name: 'iPad Pro 12.9"', description: 'Professional tablet with M2 chip', price: 1099.99, categoryName: 'Electronics' },
   { name: 'Nintendo Switch OLED', description: 'Gaming console with OLED screen', price: 349.99, categoryName: 'Electronics' },
   { name: 'Apple Watch Series 9', description: 'Advanced smartwatch', price: 399.99, categoryName: 'Electronics' },
-  
+
   // Clothing
   { name: 'Levi\'s 501 Jeans', description: 'Classic straight-fit denim jeans', price: 89.99, categoryName: 'Clothing' },
   { name: 'Nike Air Force 1', description: 'Iconic basketball sneakers', price: 110.00, categoryName: 'Clothing' },
@@ -40,33 +40,33 @@ const products = [
   { name: 'Champion Hoodie', description: 'Comfortable pullover hoodie', price: 45.99, categoryName: 'Clothing' },
   { name: 'Ray-Ban Aviator', description: 'Classic aviator sunglasses', price: 154.99, categoryName: 'Clothing' },
   { name: 'North Face Jacket', description: 'Waterproof outdoor jacket', price: 199.99, categoryName: 'Clothing' },
-  
+
   // Home & Garden
   { name: 'Dyson V15 Detect', description: 'Cordless vacuum cleaner', price: 749.99, categoryName: 'Home & Garden' },
   { name: 'Instant Pot Duo 7-in-1', description: 'Multi-use pressure cooker', price: 99.99, categoryName: 'Home & Garden' },
   { name: 'Philips Hue Smart Bulbs', description: 'Color-changing LED bulbs', price: 49.99, categoryName: 'Home & Garden' },
   { name: 'KitchenAid Stand Mixer', description: 'Professional stand mixer', price: 379.99, categoryName: 'Home & Garden' },
-  
+
   // Sports & Outdoors
   { name: 'Peloton Bike+', description: 'Interactive exercise bike', price: 2495.00, categoryName: 'Sports & Outdoors' },
   { name: 'Yeti Rambler Tumbler', description: 'Insulated stainless steel tumbler', price: 34.99, categoryName: 'Sports & Outdoors' },
   { name: 'Coleman Camping Tent', description: '4-person dome tent', price: 129.99, categoryName: 'Sports & Outdoors' },
-  
+
   // Books
   { name: 'The Psychology of Money', description: 'Financial wisdom book by Morgan Housel', price: 16.99, categoryName: 'Books' },
   { name: 'Atomic Habits', description: 'Self-improvement book by James Clear', price: 18.99, categoryName: 'Books' },
   { name: 'Dune', description: 'Classic science fiction novel', price: 12.99, categoryName: 'Books' },
-  
+
   // Beauty & Health
   { name: 'Cetaphil Daily Cleanser', description: 'Gentle face cleanser', price: 12.99, categoryName: 'Beauty & Health' },
   { name: 'Olaplex Hair Treatment', description: 'Professional hair repair treatment', price: 28.99, categoryName: 'Beauty & Health' },
   { name: 'Vitamin D3 Supplements', description: 'Daily vitamin D supplements', price: 19.99, categoryName: 'Beauty & Health' },
-  
+
   // Toys & Games
   { name: 'LEGO Creator Expert', description: 'Advanced building set', price: 199.99, categoryName: 'Toys & Games' },
   { name: 'Monopoly Board Game', description: 'Classic family board game', price: 24.99, categoryName: 'Toys & Games' },
   { name: 'PlayStation 5', description: 'Next-gen gaming console', price: 499.99, categoryName: 'Toys & Games' },
-  
+
   // Automotive
   { name: 'Michelin Pilot Sport Tires', description: 'High-performance car tires', price: 299.99, categoryName: 'Automotive' },
   { name: 'Garmin DashCam', description: 'HD dashboard camera', price: 199.99, categoryName: 'Automotive' }
@@ -95,11 +95,11 @@ async function seedDatabase() {
     await authClient.connect();
 
     const hashedPassword = await bcrypt.hash('password123', 10);
-    
+
     for (const user of users) {
       const userId = uuidv4();
       await authClient.query(`
-        INSERT INTO users (id, email, "firstName", "lastName", password, role, "isActive", "createdAt", "updatedAt")
+        INSERT INTO users (id, email, "firstName", "lastName", password, "roles", "isActive", "createdAt", "updatedAt")
         VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), NOW())
       `, [userId, user.email, user.firstName, user.lastName, hashedPassword, user.role]);
     }
@@ -144,16 +144,16 @@ async function seedDatabase() {
         const skuId = uuidv4();
         const skuCode = `SKU-${productName.replace(/[^A-Z0-9]/gi, '').toUpperCase()}-${i + 1}`;
         const stockQuantity = Math.floor(Math.random() * 100) + 10;
-        
+
         // Insert SKU
         await inventoryClient.query(`
-          INSERT INTO sku (id, "productId", "skuCode", attributes, "isActive", "createdAt", "updatedAt")
-          VALUES ($1, $2, $3, $4, true, NOW(), NOW())
-        `, [skuId, productId, skuCode, JSON.stringify({ variant: i + 1 })]);
+          INSERT INTO skus (id, "productId", code, name, attributes, "isActive", "createdAt", "updatedAt")
+          VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
+        `, [skuId, productId, skuCode, `${productName} - Variant ${i + 1}`, JSON.stringify({ variant: i + 1 })]);
 
         // Insert Stock
         await inventoryClient.query(`
-          INSERT INTO stock (id, "skuId", quantity, "reservedQuantity", "availableQuantity", "createdAt", "updatedAt")
+          INSERT INTO stocks (id, "skuId", "availableQuantity", "reservedQuantity", "totalQuantity", "createdAt", "updatedAt")
           VALUES ($1, $2, $3, 0, $3, NOW(), NOW())
         `, [uuidv4(), skuId, stockQuantity]);
       }

@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 import { Order, OrderStatus, PaymentStatus } from '../entities/order.entity';
 import { OrderItem } from '../entities/order-item.entity';
 import { OrderStatusHistory } from '../entities/order-status-history.entity';
@@ -23,6 +25,9 @@ export interface PaginationOptions {
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+  private readonly paymentServiceUrl = process.env.PAYMENT_SERVICE_URL || 'http://localhost:3005/api';
+
   constructor(
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
@@ -31,7 +36,8 @@ export class OrdersService {
     @InjectRepository(OrderStatusHistory)
     private statusHistoryRepository: Repository<OrderStatusHistory>,
     private dataSource: DataSource,
-  ) {}
+    private httpService: HttpService,
+  ) { }
 
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
     const queryRunner = this.dataSource.createQueryRunner();
@@ -46,7 +52,7 @@ export class OrdersService {
       const subtotal = createOrderDto.items.reduce(
         (sum, item) => sum + (item.unitPrice * item.quantity), 0
       );
-      
+
       // TODO: Calculate tax and shipping based on business rules
       const taxAmount = subtotal * 0.1; // 10% tax
       const shippingAmount = subtotal > 100 ? 0 : 10; // Free shipping over $100
@@ -73,7 +79,7 @@ export class OrdersService {
       const savedOrder = await queryRunner.manager.save(order);
 
       // Create order items
-      const orderItems = createOrderDto.items.map(item => 
+      const orderItems = createOrderDto.items.map(item =>
         this.orderItemsRepository.create({
           orderId: savedOrder.id,
           productId: item.productId,
@@ -104,6 +110,15 @@ export class OrdersService {
       // TODO: Emit order created event
 
       await queryRunner.commitTransaction();
+
+      // Create payment record automatically
+      try {
+        await this.createPaymentForOrder(savedOrder.id, totalAmount);
+        this.logger.log(`Payment created for order ${savedOrder.orderNumber}`);
+      } catch (error) {
+        this.logger.error(`Failed to create payment for order ${savedOrder.orderNumber}:`, error.message);
+        // Don't fail the order creation if payment creation fails
+      }
 
       return this.findOne(savedOrder.id);
     } catch (error) {
@@ -317,10 +332,10 @@ export class OrdersService {
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
-    
+
     const count = await this.ordersRepository.count();
     const sequence = (count + 1).toString().padStart(4, '0');
-    
+
     return `ORD${year}${month}${day}${sequence}`;
   }
 
@@ -336,5 +351,26 @@ export class OrdersService {
     };
 
     return validTransitions[from]?.includes(to) || false;
+  }
+
+  private async createPaymentForOrder(orderId: string, amount: number): Promise<void> {
+    try {
+      const paymentData = {
+        orderId,
+        amount,
+        currency: 'MAD',
+        method: 'pending', // Will be updated when user selects payment method
+      };
+
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.paymentServiceUrl}/payments`, paymentData)
+      );
+
+      this.logger.log(`Payment created successfully for order ${orderId}`);
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Failed to create payment for order ${orderId}:`, error.message);
+      throw error;
+    }
   }
 }

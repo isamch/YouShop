@@ -7,7 +7,7 @@ import { UpdateProductDto } from '../dto/update-product.dto';
 @ApiTags('products')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a new product' })
@@ -27,23 +27,26 @@ export class ProductsController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'isFeatured', required: false, type: Boolean })
   findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
     @Query('categoryId') categoryId?: string,
-    @Query('minPrice') minPrice?: number,
-    @Query('maxPrice') maxPrice?: number,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
     @Query('search') search?: string,
-    @Query('isFeatured') isFeatured?: boolean,
+    @Query('isFeatured') isFeatured?: string,
   ) {
     const filters: ProductFilters = {
       categoryId,
-      minPrice,
-      maxPrice,
+      minPrice: minPrice ? Number(minPrice) : undefined,
+      maxPrice: maxPrice ? Number(maxPrice) : undefined,
       search,
-      isFeatured,
+      isFeatured: isFeatured === 'true',
     };
-    const pagination: PaginationOptions = { page, limit };
-    
+    const pagination: PaginationOptions = {
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined
+    };
+
     return this.productsService.findAll(filters, pagination);
   }
 

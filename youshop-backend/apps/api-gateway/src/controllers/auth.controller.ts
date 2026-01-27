@@ -1,11 +1,11 @@
-import { Controller, Post, Get, Body, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { SimpleHttpService } from '../services/http.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly httpService: SimpleHttpService) {}
+  constructor(private readonly httpService: SimpleHttpService) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Register new user' })
@@ -14,6 +14,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(200)
   @ApiOperation({ summary: 'Login user' })
   async login(@Body() loginDto: any) {
     return this.httpService.post('auth-service/auth/login', loginDto);

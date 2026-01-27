@@ -15,7 +15,7 @@ async function createTables() {
     console.log('👤 Creating auth tables...');
     const authClient = new Client(databases.auth);
     await authClient.connect();
-    
+
     await authClient.query(`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       
@@ -25,8 +25,11 @@ async function createTables() {
         "firstName" VARCHAR(100) NOT NULL,
         "lastName" VARCHAR(100) NOT NULL,
         password VARCHAR(255) NOT NULL,
-        role VARCHAR(50) DEFAULT 'customer',
+        "roles" TEXT DEFAULT 'user',
         "isActive" BOOLEAN DEFAULT true,
+        "refreshToken" VARCHAR(255),
+        "passwordResetToken" VARCHAR(255),
+        "passwordResetExpires" TIMESTAMP,
         "createdAt" TIMESTAMP DEFAULT NOW(),
         "updatedAt" TIMESTAMP DEFAULT NOW()
       );
@@ -37,7 +40,7 @@ async function createTables() {
     console.log('📦 Creating catalog tables...');
     const catalogClient = new Client(databases.catalog);
     await catalogClient.connect();
-    
+
     await catalogClient.query(`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       
@@ -45,6 +48,7 @@ async function createTables() {
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         name VARCHAR(255) NOT NULL,
         description TEXT,
+        image VARCHAR(255),
         "sortOrder" INTEGER DEFAULT 0,
         "isActive" BOOLEAN DEFAULT true,
         "createdAt" TIMESTAMP DEFAULT NOW(),
@@ -57,6 +61,12 @@ async function createTables() {
         description TEXT,
         price DECIMAL(10,2) NOT NULL,
         "categoryId" UUID REFERENCES categories(id),
+        sku VARCHAR(100),
+        images TEXT,
+        "isFeatured" BOOLEAN DEFAULT false,
+        weight INTEGER,
+        dimensions VARCHAR(100),
+        tags TEXT,
         "isActive" BOOLEAN DEFAULT true,
         "createdAt" TIMESTAMP DEFAULT NOW(),
         "updatedAt" TIMESTAMP DEFAULT NOW()
@@ -68,26 +78,28 @@ async function createTables() {
     console.log('📊 Creating inventory tables...');
     const inventoryClient = new Client(databases.inventory);
     await inventoryClient.connect();
-    
+
     await inventoryClient.query(`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       
-      CREATE TABLE IF NOT EXISTS sku (
+      CREATE TABLE IF NOT EXISTS skus (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         "productId" UUID NOT NULL,
-        "skuCode" VARCHAR(100) UNIQUE NOT NULL,
+        code VARCHAR(100) UNIQUE NOT NULL,
+        name VARCHAR(255),
         attributes JSONB,
         "isActive" BOOLEAN DEFAULT true,
         "createdAt" TIMESTAMP DEFAULT NOW(),
         "updatedAt" TIMESTAMP DEFAULT NOW()
       );
       
-      CREATE TABLE IF NOT EXISTS stock (
+      CREATE TABLE IF NOT EXISTS stocks (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        "skuId" UUID REFERENCES sku(id),
-        quantity INTEGER DEFAULT 0,
-        "reservedQuantity" INTEGER DEFAULT 0,
+        "skuId" UUID REFERENCES skus(id),
         "availableQuantity" INTEGER DEFAULT 0,
+        "reservedQuantity" INTEGER DEFAULT 0,
+        "totalQuantity" INTEGER DEFAULT 0,
+        "isActive" BOOLEAN DEFAULT true,
         "createdAt" TIMESTAMP DEFAULT NOW(),
         "updatedAt" TIMESTAMP DEFAULT NOW()
       );
@@ -98,7 +110,7 @@ async function createTables() {
     console.log('🛒 Creating orders tables...');
     const ordersClient = new Client(databases.orders);
     await ordersClient.connect();
-    
+
     await ordersClient.query(`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
       

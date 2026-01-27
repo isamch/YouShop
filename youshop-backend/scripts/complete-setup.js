@@ -22,7 +22,7 @@ async function setupDatabase() {
 
   // Step 1: Install dependencies
   const depsInstalled = await runCommand(
-    'npm install pg uuid bcrypt', 
+    'npm install pg uuid bcrypt',
     'Installing dependencies'
   );
   if (!depsInstalled) return;
@@ -40,19 +40,19 @@ async function setupDatabase() {
 
   // Step 4: Create tables by running services briefly
   const services = ['auth-service', 'catalog-service', 'inventory-service', 'orders-service'];
-  
+
   for (const service of services) {
     console.log(`🔄 Creating tables for ${service}...`);
-    
+
     // Start service in background
     const serviceProcess = exec(`npm run start:dev ${service}`);
-    
+
     // Wait for service to start and create tables
     await new Promise(resolve => setTimeout(resolve, 15000));
-    
+
     // Kill the service
     serviceProcess.kill();
-    
+
     console.log(`✅ Tables created for ${service}`);
   }
 

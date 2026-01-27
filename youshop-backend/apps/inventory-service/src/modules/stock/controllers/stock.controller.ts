@@ -6,13 +6,25 @@ import { CreateStockDto, ReserveStockDto, ReleaseStockDto, AdjustStockDto } from
 @ApiTags('stock')
 @Controller('stock')
 export class StockController {
-  constructor(private readonly stockService: StockService) {}
+  constructor(private readonly stockService: StockService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create stock for SKU' })
   @ApiResponse({ status: 201, description: 'Stock created successfully' })
   createStock(@Body() createStockDto: CreateStockDto) {
     return this.stockService.createStock(createStockDto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all stock items' })
+  @ApiResponse({ status: 200, description: 'Stock items retrieved successfully' })
+  @ApiQuery({ name: 'skuId', required: false, type: String })
+  findAll(@Query('skuId') skuId?: string) {
+    if (skuId) {
+      return this.stockService.findBySkuId(skuId);
+    }
+    // Return all stock items (you may want to add pagination here)
+    return this.stockService.getLowStockItems(999999); // Temporary: returns all items
   }
 
   @Post('reserve')
