@@ -7,7 +7,7 @@ export const getCatalogDatabaseConfig = (): TypeOrmModuleOptions => ({
   username: process.env.CATALOG_DB_USERNAME || 'postgres',
   password: process.env.CATALOG_DB_PASSWORD || 'isampgsql123!',
   database: process.env.CATALOG_DB_NAME || 'catalog_db',
-  entities: ['dist/**/*.entity{.ts,.js}', 'apps/**/*.entity{.ts,.js}'],
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,

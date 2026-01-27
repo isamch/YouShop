@@ -1,7 +1,12 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ProxyModule } from './modules/proxy/proxy.module';
-import { RateLimitMiddleware } from './middleware/rate-limit.middleware';
+import { HttpModule } from '@nestjs/axios';
+import { AuthController } from './controllers/auth.controller';
+import { OrdersController } from './controllers/orders.controller';
+import { CatalogController } from './controllers/catalog.controller';
+import { InventoryController } from './controllers/inventory.controller';
+import { PaymentsController } from './controllers/payments.controller';
+import { SimpleHttpService } from './services/http.service';
 
 @Module({
   imports: [
@@ -9,15 +14,15 @@ import { RateLimitMiddleware } from './middleware/rate-limit.middleware';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    ProxyModule,
+    HttpModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [
+    AuthController,
+    OrdersController,
+    CatalogController,
+    InventoryController,
+    PaymentsController,
+  ],
+  providers: [SimpleHttpService],
 })
-export class ApiGatewayModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(RateLimitMiddleware)
-      .forRoutes('*');
-  }
-}
+export class ApiGatewayModule {}

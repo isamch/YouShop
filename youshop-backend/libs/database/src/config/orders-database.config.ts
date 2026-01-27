@@ -7,8 +7,9 @@ export const getOrdersDatabaseConfig = (): TypeOrmModuleOptions => ({
   username: process.env.ORDERS_DB_USERNAME || 'postgres',
   password: process.env.ORDERS_DB_PASSWORD || 'password',
   database: process.env.ORDERS_DB_NAME || 'orders_db',
-  entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  autoLoadEntities: true,
 });
